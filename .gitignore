@@ -1,0 +1,8 @@
+.settings
+.project
+.class
+.classpath
+target/
+src/main/webapp/WEB-INF/classes
+~$*
+*.iml
