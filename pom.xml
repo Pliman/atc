@@ -27,7 +27,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.pliman.cat.Cat</mainClass>
+							<mainClass>net.pliman.atc.Atc</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
