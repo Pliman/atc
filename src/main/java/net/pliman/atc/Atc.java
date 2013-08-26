@@ -28,21 +28,35 @@ import java.util.regex.Pattern;
  * please make sure file encoding are all utf-8
  */
 public class Atc {
-	private static final String[] PARAMS = {"s", "to", "from", "pre", "post"};
+	private static final String[] PARAMS = {"s", "to", "from", "pre", "post", "end", "prePath"};
 	private static final int BUFSIZE = 1024 * 1024;
 
-	private Map<String, String> paramMap = new HashMap<String, String>(5);
+	private Map<String, String> paramMap = new HashMap<String, String>(7);
+
+	private Map<String, Pattern> patternMap = new HashMap<String, Pattern>(7);
 
 	public static void main(String[] args) {
 		new Atc().compress(args);
 	}
 
+	private void init () {
+		patternMap.put("s",Pattern.compile("-s\\s\\[(.+?)\\]\\s"));
+		patternMap.put("to",Pattern.compile("-to\\s(.+?)\\s"));
+		patternMap.put("from",Pattern.compile("-from\\s(.+?)\\s"));
+		patternMap.put("pre",Pattern.compile("-pre\\s\\[(.+?)\\]\\s"));
+		patternMap.put("post",Pattern.compile("-post\\s\\[(.+?)\\]\\s"));
+		patternMap.put("end",Pattern.compile("-(end)\\s"));
+		patternMap.put("prePath",Pattern.compile("-prePath\\s(.+?)\\s"));
+	}
+
 	public void compress(String[] args) {
+		this.init();
+
 		String allArgs = join(args, " ") + " ";
 		out.println("*****Command is: " + allArgs);
 
 		for (String param : PARAMS) {
-			Pattern paramPattern = Pattern.compile("-" + param + "\\s(.+?)\\s");
+			Pattern paramPattern = patternMap.get(param);
 
 			Matcher m = paramPattern.matcher(allArgs);
 
@@ -58,9 +72,14 @@ public class Atc {
 		paramMap.put("pre", pre ? paramMap.get("pre") : "");
 		boolean post = (paramMap.get("post") != null);
 		paramMap.put("post", post ? paramMap.get("post") : "");
+		boolean end = (paramMap.get("end") != null);
+		boolean prePath = (paramMap.get("prePath") != null);
+		paramMap.put("prePath", prePath ? paramMap.get("prePath") : "");
 
 		// if no "to", sink to console
-		if (s && !to && !from) {
+		if (end) {
+			mergeString(paramMap.get("to"), "\"\"];", "", "");
+		}else if (s && !to && !from) {
 			out.println("*****s && !to && !from. No dest file designated, sink to console");
 
 			out.print(paramMap.get("pre"));
@@ -87,12 +106,12 @@ public class Atc {
 		} else if (!s && to && from) {
 			out.println("*****!s && to && from. Sinking");
 
-			mergeFile(paramMap.get("to"), paramMap.get("from"), paramMap.get("pre"), paramMap.get("post"));
+			mergeFile(paramMap.get("to"), paramMap.get("from"), paramMap.get("pre"), paramMap.get("post"), paramMap.get("prePath"));
 		} else if (s && to && from) {
 			out.println("*****s && to && from. Sinking");
 
 			mergeString(paramMap.get("to"), paramMap.get("s"), paramMap.get("pre"), "");
-			mergeFile(paramMap.get("to"), paramMap.get("from"), "", paramMap.get("post"));
+			mergeFile(paramMap.get("to"), paramMap.get("from"), "", paramMap.get("post"), paramMap.get("prePath"));
 		}
 	}
 
@@ -159,7 +178,7 @@ public class Atc {
 		}
 	}
 
-	private void mergeFile(String outFile, String from, String prefix, String postfix) {
+	private void mergeFile(String outFile, String from, String prefix, String postfix, String prePath) {
 		BufferedReader reader = null;
 		BufferedWriter writer = null;
 		StringBuilder builder = new StringBuilder();
@@ -169,7 +188,13 @@ public class Atc {
 			reader = new BufferedReader(new FileReader(from));
 			writer = new BufferedWriter(new FileWriter(outFile, true));
 			writer.write(prefix);
-			writer.write("\"");
+
+			if (!"".equals(prePath)) {
+				writer.write("\"" + (outFile.indexOf(prePath)!=-1?outFile.substring(prePath.length(), outFile.length()):outFile).replaceAll("\\\\","/") + "\":\"");
+			}else {
+				writer.write("\"" + outFile.replaceAll("\\\\","/") + "\":\"");
+			}
+
 
 			String line = reader.readLine();
 
@@ -180,7 +205,7 @@ public class Atc {
 
 			writer.write(builder.toString().replaceAll("\"","\\\\\""));
 
-			writer.write("\"");
+			writer.write("\",");
 			writer.write(postfix);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
