@@ -49,15 +49,15 @@ public class TestAtc {
 		String[] param7 = {"-s", "[string]", "-to", TO_FILE, "-from", FROM_FILE, "-pre", "[pre]", "-post", "[post]"};
 		new Atc().compress(param7);
 
-		//end -- file ""];
+		//end -- file "end":"end"};
 		String[] param8 = {"-s", "[string]", "-to", TO_FILE, "-from", FROM_FILE, "-pre", "[pre]", "-post", "[post]", "-end"};
 		new Atc().compress(param8);
 
-		//!s && to && from & prePath -- file "/resources/to.txt":"a",
+		//!s && to && from & prePath -- file "/resources/a.txt":"a",
 		String[] param9 = {"-to", TO_FILE, "-from", FROM_FILE, "-prePath", "D:\\MCMS\\atc\\src\\test"};
 		new Atc().compress(param9);
 
-		assertEquals("prepostprestringpostpre\"D:/MCMS/atc/src/test/resources/to.txt\":\"a\",postprestring\"D:/MCMS/atc/src/test/resources/to.txt\":\"a\",post\"\"];\"/resources/to.txt\":\"a\",", readFile(TO_FILE));
+		assertEquals("prepostprestringpostpre\"D:/MCMS/atc/src/test/resources/a.txt\":\"a\",postprestring\"D:/MCMS/atc/src/test/resources/a.txt\":\"a\",post\"end\":\"end\"};\"/resources/a.txt\":\"a\",", readFile(TO_FILE));
 	}
 
 	private void clearFile(String file) {

@@ -8,6 +8,7 @@ import static java.lang.System.out;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class Atc {
 
 		// if no "to", sink to console
 		if (end) {
-			mergeString(paramMap.get("to"), "\"\"];", "", "");
+			mergeString(paramMap.get("to"), "\"end\":\"end\"};", "", "");
 		}else if (s && !to && !from) {
 			out.println("*****s && !to && !from. No dest file designated, sink to console");
 
@@ -161,7 +162,8 @@ public class Atc {
 		BufferedWriter writer = null;
 		out.println("*****Merge " + str + " into " + outFile);
 		try {
-			writer = new BufferedWriter(new FileWriter(outFile, true));
+			writer = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(outFile, true), "UTF-8"));
 			writer.write(prefix);
 			writer.write(str);
 			writer.write(postfix);
@@ -185,14 +187,16 @@ public class Atc {
 
 		try {
 			out.print(prefix);
-			reader = new BufferedReader(new FileReader(from));
-			writer = new BufferedWriter(new FileWriter(outFile, true));
+			reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(from),"UTF-8"));
+			writer = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(outFile, true), "UTF-8"));
 			writer.write(prefix);
 
 			if (!"".equals(prePath)) {
-				writer.write("\"" + (outFile.indexOf(prePath)!=-1?outFile.substring(prePath.length(), outFile.length()):outFile).replaceAll("\\\\","/") + "\":\"");
+				writer.write("\"" + (from.indexOf(prePath)!=-1?from.substring(prePath.length(), from.length()):from).replaceAll("\\\\","/") + "\":\"");
 			}else {
-				writer.write("\"" + outFile.replaceAll("\\\\","/") + "\":\"");
+				writer.write("\"" + from.replaceAll("\\\\","/") + "\":\"");
 			}
 
 
